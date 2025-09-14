@@ -124,46 +124,46 @@ export function LandingPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+  const handleContactSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  // Check if at least phone or email is provided
+  if (!formData.phone && !formData.email) {
+    alert('חובה למלא לפחות אחד מהפרטים: מספר טלפון או כתובת אימייל');
+    return;
+  }
+  
+  try {
+    const formData_submit = new FormData();
+    formData_submit.append('name', formData.fullName);
+    formData_submit.append('email', formData.email || 'לא סופק');
+    formData_submit.append('phone', formData.phone || 'לא סופק');
+    formData_submit.append('subject', formData.subject || 'פנייה כללית');
+    formData_submit.append('message', formData.message);
+    formData_submit.append('_next', window.location.href);
+    formData_submit.append('_captcha', 'false');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Create mailto link with form data
-    const subject = encodeURIComponent(`פנייה מאתר מידטאון: ${formData.subject}`);
-    const body = encodeURIComponent(`
-שלום,
-
-פרטי הפניה:
-שם מלא: ${formData.fullName}
-טלפון: ${formData.phone}
-אימייל: ${formData.email}
-נושא: ${formData.subject}
-
-תוכן ההודעה:
-${formData.message}
-
-בברכה,
-${formData.fullName}
-    `);
-    
-    const mailtoLink = `mailto:midtownclinicstlv@gmail.com?subject=${subject}&body=${body}`;
-    
-    // Open email client
-    window.location.href = mailtoLink;
-    
-    // Show success message
-    alert('נפתח עבורכם חלון אימייל עם הפרטים. אנא שלחו את ההודעה כדי להשלים את הפנייה.');
-    
-    // Reset form
-    setFormData({
-      fullName: '',
-      phone: '',
-      email: '',
-      subject: '',
-      message: ''
+    const response = await fetch('https://formsubmit.co/midtownclinicstlv@gmail.com', {
+      method: 'POST',
+      body: formData_submit
     });
-  };
 
+    if (response.ok) {
+      alert('ההודעה נשלחה בהצלחה! נחזור אליכם בהקדם.');
+      setFormData({
+        fullName: '',
+        phone: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } else {
+      alert(`שגיאה בשליחת ההודעה. קוד שגיאה: ${response.status} - ${response.statusText}. אנא נסו שוב או צרו קשר טלפונית: 055-989-0643`);
+    }
+  } catch (error) {
+    alert(`שגיאת רשת: ${error.message}. בדקו חיבור לאינטרנט או צרו קשר טלפונית: 055-989-0643`);
+  }
+};
   const benefits = [
     {
       icon: MapPin,
@@ -218,7 +218,7 @@ ${formData.fullName}
     {
       icon: Clock,
       title: 'שירותי משרד',
-      description: 'מזכירות לקביעת תורים 24/7, שירותי גבייה וטיפול מול חברות הביטוח.'
+      description: 'מזכירות לקביעת תורים 24/7 ושירותי גבייה.'
     },
     {
       icon: Users,
@@ -361,7 +361,7 @@ ${formData.fullName}
     {
       icon: MapPin,
       title: 'כתובת',
-      details: 'מגדל מידטאון, דרך מנחם בגין 144, תל אביב, קומה 21'
+      details: 'מגדל ��ידטאון, דרך מנחם בגין 144, תל אביב, קומה 21'
     },
     {
       icon: Phone,
@@ -454,16 +454,15 @@ ${formData.fullName}
                 </a>
                 
                 <a
-                  href="https://wa.me/972559890643?text=שלום,%20אשמח%20לשמוע%20עוד%20פרטים%20על%20מרפאת%20מידטאון%20-%20Midtown%20Clinics%20?"
+                  href={`https://wa.me/972559890643?text=${encodeURIComponent('שלום, אשמח לשמוע עוד פרטים על מרפאת מידטאון - Midtown Clinics')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={closePriceModal}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-[rgba(255,255,255,1)]"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.688"/>
                   </svg>
-                  <span className="text-sm">WhatsApp</span>
+                  <span className="text-sm text-[rgba(255,255,255,1)]">WhatsApp</span>
                 </a>
               </div>
             </CardContent>
@@ -557,9 +556,9 @@ ${formData.fullName}
       {/* Doctors Section */}
       <section id="doctors" className="py-20 bg-white relative">
         {/* Photo Credit */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-0 right-4 z-10">
           <p className="text-xs text-muted-foreground not-italic text-right">
-            www.dnmr.co.il תמונה בבעלות
+            www.dnmr.co.il תמונה באדיבות
           </p>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
@@ -572,7 +571,7 @@ ${formData.fullName}
               <div className="space-y-4 text-muted-foreground leading-relaxed mb-8">
                 <div className="flex items-start gap-3">
                   <Clock className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                  <span className="text-[20px]">מזכירות, קביעת תורים 24/7, גביה, טיפול מול ביטוחים</span>
+                  <span className="text-[20px]">מזכירות, קביעת תורים 24/7, וגביה</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <Car className="h-5 w-5 text-primary flex-shrink-0" />
@@ -644,13 +643,13 @@ ${formData.fullName}
           
           {/* Clinic Status Note */}
           <div className="text-center mb-16" dir="rtl">
-            <p className="text-lg text-muted-foreground italic text-left -mt-30 mb-1 text-[14px]">
-              המקום משמש כיום את מכבי אסתטיקה ויעבור התאמה לחדרי רופאים; תמונות באדיבות מכבי אסתטיקה
+            <p className="text-lg text-muted-foreground italic text-left mt-[-80px] mb-[4px] text-[14px] mr-[0px] ml-[0px]">
+              *המקום משמש כיום את מכבי אסתטיקה ויעבור התאמה לחדרי רופאים; תמונות באדיבות מכבי אסתטיקה
             </p>
           </div>
           
           {/* Location Advantages Section */}
-      <section id="location" className="py-20 bg-secondary">
+      <section id="location" className="py-20 bg-secondary rounded-[10px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -776,7 +775,7 @@ ${formData.fullName}
       <div className="h-px bg-border"></div>
       
       <footer id="contact" className="bg-[rgba(248,250,252,1)] py-12 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[rgba(9,10,9,0)] rounded-[10px]" dir="rtl">
           <div className="text-center mb-12">
             <div className="text-2xl text-primary mb-4">Midtown Clinics</div>
             <p className="text-muted-foreground mb-6">
@@ -796,10 +795,150 @@ ${formData.fullName}
             </div>
           </div>
 
-          {/* Map and Video Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* YouTube Video - Right side */}
-            <div className="order-1 lg:order-2">
+          {/* Contact Form and Map/Video Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-8">
+            {/* Contact Form - Left side */}
+            <div className="order-2 lg:order-1">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-primary text-center">צור קשר</CardTitle>
+                  <p className="text-muted-foreground text-center">
+                    השאירו פרטים ונחזור אליכם בהקדם
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">שם מלא *</Label>
+                      <Input
+                        id="fullName"
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                        required
+                        className="bg-input-background"
+                        placeholder="הכניסו את שמכם המלא"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">מספר טלפון *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        required
+                        className="bg-input-background"
+                        placeholder="050-1234567"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">כתובת אימייל *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        required
+                        className="bg-input-background"
+                        placeholder="example@email.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">נושא הפנייה</Label>
+                      <Select 
+                        value={formData.subject} 
+                        onValueChange={(value) => setFormData({...formData, subject: value})}
+                      >
+                        <SelectTrigger className="bg-input-background">
+                          <SelectValue placeholder="בחרו נושא" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">פנייה כללית</SelectItem>
+                          <SelectItem value="rental">השכרת מרפאה</SelectItem>
+                          <SelectItem value="services">שירותים נוספים</SelectItem>
+                          <SelectItem value="partnership">שיתוף פעולה</SelectItem>
+                          <SelectItem value="other">אחר</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message">הודעה</Label>
+                      <Textarea
+                        id="message"
+                        value={formData.message}
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        className="bg-input-background min-h-[120px]"
+                        placeholder="כתבו כאן את הודעתכם..."
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                      <Mail className="h-4 w-4 ml-2" />
+                      שלח הודעה
+                    </Button>
+                  </form>
+
+                  <div className="pt-6 border-t border-border space-y-4">
+                    <div className="text-center text-sm text-muted-foreground mb-4">
+                      או צרו קשר ישירות:
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <a
+                        href="tel:055-989-0643"
+                        className="flex items-center justify-center gap-2 p-3 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors text-primary"
+                      >
+                        <Phone className="h-4 w-4" />
+                        <span>055-989-0643</span>
+                      </a>
+                      
+                      <a
+                        href="mailto:midtownclinicstlv@gmail.com"
+                        className="flex items-center justify-center gap-2 p-3 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors text-primary"
+                      >
+                        <Mail className="h-4 w-4" />
+                        <span>midtownclinicstlv@gmail.com</span>
+                      </a>
+                      
+                      <a
+                        href={`https://wa.me/972559890643?text=${encodeURIComponent('שלום, אשמח לשמוע עוד פרטים על מרפאת מידטאון - Midtown Clinics')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white"
+                      >
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.688"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Map and Video - Right side */}
+            <div className="order-1 lg:order-2 space-y-6">
+              {/* Map */}
+              <div className="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3380.993077697843!2d34.78657681523456!3d32.08332148119047!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151d4b06b5e8e6d1%3A0x6c96a7de2bb8b2a8!2sMenachem%20Begin%20Rd%20144%2C%20Tel%20Aviv-Yafo%2C%20Israel!5e0!3m2!1sen!2sil!4v1700000000000!5m2!1sen!2sil"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="rounded-lg"
+                    title="מיקום מגדל מידטאון - Midtown Tower"
+                  />
+              </div>
+
+              {/* Video */}
               <div className="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
                 <iframe
                   width="100%"
@@ -811,23 +950,6 @@ ${formData.fullName}
                   allowFullScreen
                   className="w-full h-full"
                 ></iframe>
-              </div>
-            </div>
-
-            {/* Map - Left side */}
-            <div className="order-2 lg:order-1">
-              <div className="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3380.993077697843!2d34.78657681523456!3d32.08332148119047!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151d4b06b5e8e6d1%3A0x6c96a7de2bb8b2a8!2sMenachem%20Begin%20Rd%20144%2C%20Tel%20Aviv-Yafo%2C%20Israel!5e0!3m2!1sen!2sil!4v1700000000000!5m2!1sen!2sil"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="rounded-lg"
-                    title="מיקום מגדל מידטאון - Midtown Medical"
-                  />
               </div>
             </div>
           </div>
@@ -862,7 +984,7 @@ ${formData.fullName}
             </a>
             
             <a
-              href="https://wa.me/972559890643?text=שלום,%20אשמח%20לשמוע%20עוד%20פרטים%20על%20מרפאת%20מידטאון%20-%20Midtown%20Clinics%20?"
+              href={`https://wa.me/972559890643?text=${encodeURIComponent('שלום, אשמח לשמוע עוד פרטים על מרפאת מידטאון - Midtown Clinics')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
